@@ -20,7 +20,7 @@ resource "aws_elb"  "elb_frontend" {
     interval            = 30
   }
 
-  instances                   = [aws_instance.skytest.id]
+  instances                   = [aws_instance.skytest_a.id, aws_instance.skytest_b.id]
   cross_zone_load_balancing   = true
   idle_timeout                = 400
   connection_draining         = true

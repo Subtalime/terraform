@@ -91,5 +91,3 @@ resource "aws_security_group" "sg_private" {
 	Environment = var.environment_tag
     }
 }
-
-

@@ -1,3 +1,39 @@
+variable "domain_name" {
+    description = "The domain being used to route traffic"
+    default = "ts-aws.net"
+    type = string
+}
+
+variable "route_53" {
+    description = "The URI for the service"
+    default = "www"
+    type = string
+}
+
+variable "ssl_cert" {
+    description = "ARN to the SSL-Certificate"
+    default = "arn:aws:acm:eu-west-2:620672819820:certificate/b8c303af-d848-4e4d-8c7b-93086b7fd50a"
+    type = string
+}
+
+variable "ssh_location" {
+    description = "Allow SSH access from this network only"
+    default = "86.25.180.0/24"
+    type = string
+}
+
+variable "public_key_path" {
+    description = "File-Path to the public key"
+    default = "~/.ssh/keypair.pub"
+    type = string
+}
+
+variable "private_key_path" {
+    description = "File-Path to the private key"
+    default = "~/.ssh/keypair.pem"
+    type = string
+}
+
 variable "region" {
     description = "Region where the AWS infrastructure is created"
     default = "eu-west-2"
@@ -8,10 +44,6 @@ variable "availability_zone" {
     description = "Zone for the Subnets"
     default = "eu-west-2a"
     type = string
-}
-
-data "aws_availability_zones" "available" {
-    state = "available"
 }
 
 variable "type" {
@@ -25,6 +57,10 @@ variable "image" {
     description = "Centos AMI image with SSH Access as user centos"
     default = "ami-05fd99a3530dfd34b"
     type = string
+}
+
+data "aws_availability_zones" "available" {
+    state = "available"
 }
 
 variable "cidr_vpc" {
@@ -44,40 +80,10 @@ variable "environment_tag" {
     type = string
 }
 
-variable "public_key_path" {
-    description = "File-Path to the public key"
-    default = "~/.ssh/keypair.pub"
-    type = string
-}
-
-variable "private_key_path" {
-    description = "File-Path to the private key"
-    default = "~/.ssh/keypair.pem"
-    type = string
-}
-
 variable "http_listener" {
     description = "the ingress port to the Web-Service"
     default = 443
     type = number
-}
-
-variable "domain_name" {
-    description = "The domain being used to route traffic"
-    default = "ts-aws.net"
-    type = string
-}
-
-variable "route_53" {
-    description = "The URI for the service"
-    default = "www.ts-aws.net"
-    type = string
-}
-
-variable "ssh_location" {
-    description = "Allow SSH access from this network only"
-    default = "86.25.180.0/24"
-    type = string
 }
 
 variable "open_network" {
@@ -86,8 +92,3 @@ variable "open_network" {
     type = string
 }
 
-variable "ssl_cert" {
-    description = "ARN to the SSL-Certificate"
-    default = "arn:aws:acm:eu-west-2:620672819820:certificate/b8c303af-d848-4e4d-8c7b-93086b7fd50a"
-    type = string
-}

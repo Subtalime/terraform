@@ -1,5 +1,5 @@
 ---
-# tasks file for httpd
+# tasks file for httpserver
 - name: install nginx
   yum:
     name: nginx
@@ -16,11 +16,7 @@
     src: files/nginx.conf
     dest: /etc/nginx/nginx.conf
     mode: 0644
-#- name: start HTTP daemon
-#  service:
-#    name: nginx
-#    state: started
-- name: reload HTTP Daemon just in case
+- name: reload/restart HTTP Daemon with new configuration
   service:
     name: nginx
     state: reloaded
