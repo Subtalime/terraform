@@ -1,0 +1,12 @@
+---
+- hosts: all
+  become: yes
+  become_user: root
+  become_method: sudo
+#  pre_tasks:
+#    - name: update all packages
+#      yum:
+#        name: "*"
+#        state: latest
+  roles:
+    - httpserver

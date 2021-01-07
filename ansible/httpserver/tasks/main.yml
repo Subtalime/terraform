@@ -1,0 +1,27 @@
+---
+# tasks file for httpd
+- name: install nginx
+  yum:
+    name: nginx
+    state: latest
+- name: backup index page
+  command: mv /usr/share/nginx/html/index.html /usr/share/nginx/html/index_org.html
+- name: copy new home-page
+  copy:
+    src: files/homepage.html
+    dest: /usr/share/nginx/html/index.html
+    mode: 0644
+- name: copy configuration
+  copy:
+    src: files/nginx.conf
+    dest: /etc/nginx/nginx.conf
+    mode: 0644
+#- name: start HTTP daemon
+#  service:
+#    name: nginx
+#    state: started
+- name: reload HTTP Daemon just in case
+  service:
+    name: nginx
+    state: reloaded
+

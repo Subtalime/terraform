@@ -1,0 +1,10 @@
+---
+- name: init terraform
+  shell: terraform init
+  args:
+    chdir: terraform/
+
+- name: apply terraform script
+  terraform:
+    project_path: terraform/
+    state: present
