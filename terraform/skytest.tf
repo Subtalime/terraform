@@ -23,7 +23,7 @@ resource "aws_instance" "skytest_a" {
           type        = "ssh"
           agent       = false
           host        = self.public_ip
-          user        = "centos"
+          user        = var.ssh_user
           private_key = file(var.private_key_path)
         }
         inline = ["echo 'Server is ready for connection'"]
@@ -33,7 +33,7 @@ resource "aws_instance" "skytest_a" {
       command = <<EOT
           ansible-playbook \
          -i '${self.public_ip},' \
-         -u centos \
+         -u ${var.ssh_user} \
             --private-key ${var.private_key_path} \
            ../ansible/frontend.yml
         EOT
@@ -59,7 +59,7 @@ resource "aws_instance" "skytest_b" {
           type        = "ssh"
           agent       = false
           host        = self.public_ip
-          user        = "centos"
+          user        = var.ssh_user
           private_key = file(var.private_key_path)
         }
         inline = ["echo 'Server is ready for connection'"]
@@ -69,7 +69,7 @@ resource "aws_instance" "skytest_b" {
       command = <<EOT
           ansible-playbook \
          -i '${self.public_ip},' \
-         -u centos \
+         -u ${var.ssh_user} \
             --private-key ${var.private_key_path} \
            ../ansible/frontend.yml
         EOT

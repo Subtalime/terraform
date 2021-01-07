@@ -34,6 +34,12 @@ variable "private_key_path" {
     type = string
 }
 
+variable "ssh_user" {
+    description = "User to access the AMI using the SSH-Key"
+    default = "centos"
+    type = string
+}
+
 variable "region" {
     description = "Region where the AWS infrastructure is created"
     default = "eu-west-2"
