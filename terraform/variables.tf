@@ -85,3 +85,9 @@ variable "open_network" {
     default = "0.0.0.0/0"
     type = string
 }
+
+variable "ssl_cert" {
+    description = "ARN to the SSL-Certificate"
+    default = "arn:aws:acm:eu-west-2:620672819820:certificate/b8c303af-d848-4e4d-8c7b-93086b7fd50a"
+    type = string
+}

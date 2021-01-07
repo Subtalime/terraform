@@ -77,14 +77,18 @@ resource "aws_route_table_association" "rta_private_b" {
   route_table_id = aws_route_table.rt_private_b.id
 }
 
-resource "aws_route53_zone" "primary" {
-  name = "ts-aws.net"
-}
 
+# DNS configuration
+resource "aws_route53_zone" "primary" {
+  name = var.domain_name
+}
 resource "aws_route53_record" "www" {
   zone_id = aws_route53_zone.primary.zone_id
   name    = "www"
-  type    = "CNAME"
-  ttl     = "300"
-  records = [ aws_elb.elb_frontend.dns_name ]
+  type    = "A"
+  alias {
+    name    = aws_elb.elb_frontend.dns_name
+    zone_id = aws_elb.elb_frontend.zone_id
+    evaluate_target_health = true
+  }
 }

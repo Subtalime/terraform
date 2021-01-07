@@ -1,0 +1,5 @@
+terraform/.terraform
+*.log
+*.hcl
+*.retry
+*.tfstate*
