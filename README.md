@@ -13,7 +13,7 @@
 All configurable values are stored in terraform/variables.tf. Make sure you check these before attempting to deploy.
 
 ## Execution
-change in to the terraform folder and execute "apply"
+change in to the terraform folder and execute "terraform init" followed by "terraform apply"
 
 ## Caveats encountered in my environment
 Name-Server records are not updated locally. To be able to use the URL, I needed to update the Nameserver to AWS, by issuing
