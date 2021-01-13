@@ -7,7 +7,7 @@ variable "ami_image" {
 }
 
 variable "ssh_instance_user" {
-    description = "The user to login via SSH"
+    description = "The user to login via SSH to run Ansible"
     default = "ec2-user"
     type = string
 }
@@ -26,8 +26,7 @@ variable "ssl_cert" {
 
 variable "ssh_access_permit" {
     description = "Allow SSH access from these networks"
-#    default = ["86.25.180.0/24"]
-    default = ["0.0.0.0/0"]
+    default = ["86.25.180.0/24"]
     type = list(string)
 }
 

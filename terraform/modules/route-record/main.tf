@@ -6,7 +6,8 @@ locals {
 resource "aws_route53_record" "this" {
   for_each = local.recordsets
 
-  zone_id = var.zone_id
+  zone_id         = var.zone_id
+  allow_overwrite = var.allow_overwrite
 
   name    = each.value.name != "" ? "${each.value.name}.${var.zone_name}" : var.zone_name
   type    = each.value.type
