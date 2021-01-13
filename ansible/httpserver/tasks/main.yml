@@ -1,23 +1,26 @@
 ---
 # tasks file for httpserver
-- name: install nginx
+- name: get the facts
+  package_facts: 
+    manager: auto
+- name: ensure HTTPD is installed
   yum:
-    name: nginx
+    name: httpd
     state: latest
-- name: backup index page
-  command: mv /usr/share/nginx/html/index.html /usr/share/nginx/html/index_org.html
+- name: configure httpd to listen on port 8080
+  lineinfile:
+    path: /etc/httpd/conf/httpd.conf
+    regexp: '^Listen '
+    insertafter: '^#Listen '
+    line: Listen 8080
 - name: copy new home-page
   copy:
     src: files/homepage.html
-    dest: /usr/share/nginx/html/index.html
+    dest: /var/www/html/index.html
     mode: 0644
-- name: copy configuration
-  copy:
-    src: files/nginx.conf
-    dest: /etc/nginx/nginx.conf
-    mode: 0644
+    backup: yes
 - name: reload/restart HTTP Daemon with new configuration
   service:
-    name: nginx
+    name: httpd
     state: reloaded
 
