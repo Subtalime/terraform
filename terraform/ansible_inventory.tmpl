@@ -1,0 +1,17 @@
+# Terraform template-file "project2.tmpl" generating "project2.yml"
+# to be used as an Ansible var_file
+
+%{ for env in keys(elb) ~}
+
+# Environment "${env}"
+[${env}]
+# DNS for the Load-Balancer
+${elb[env].this_elb_dns_name}  # ${elb[env].this_elb_name}
+[${env}_servers]
+# Public IPs for the instances
+%{ for index, s in http[env].public_ip ~}
+${http[env].public_ip[index]}  # dns=${http[env].public_dns[index]}
+%{ endfor ~}
+
+%{ endfor ~}
+
