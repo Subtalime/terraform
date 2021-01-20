@@ -1,7 +1,19 @@
 ---
-- hosts: all
+- hosts: development_servers
   become: yes
-  become_user: root
+  become_method: sudo
+# !!! this "update all packages" has intentionally been commented out !!!
+# The amount of updates takes ~25 minutes and Terraform crashes out
+#  pre_tasks:
+#    - name: update all packages
+#      yum:
+#        name: "*"
+#        state: latest
+  roles:
+    - httpserver
+
+- hosts: production_servers
+  become: yes
   become_method: sudo
 # !!! this "update all packages" has intentionally been commented out !!!
 # The amount of updates takes ~25 minutes and Terraform crashes out
