@@ -13,6 +13,7 @@ terraform {
 provider "aws" {
     region  = var.aws_region
 }
+
 data "aws_availability_zones" "available" {
     state = "available"
 }
@@ -20,7 +21,7 @@ data "aws_availability_zones" "available" {
 
 # SSL Certificate
 resource "tls_private_key" "domain" {
-  algorithm = "RSA"
+    algorithm = "RSA"
 }
 
 # make it a self signed one for short duration
@@ -39,6 +40,7 @@ module "aws_cert" {
 
     for_each = var.project
 
+    
     private_key_pem = tls_private_key.domain.private_key_pem
     cert_pem        = module.tls_cert[each.key].cert_pem
 }
@@ -82,12 +84,18 @@ module "vpc" {
   private_subnets = slice(var.private_subnet_cidr_blocks, 0, each.value.private_subnets_per_vpc)
   public_subnets  = slice(var.public_subnet_cidr_blocks, 0, each.value.public_subnets_per_vpc)
 
-  enable_nat_gateway   = true
+  enable_nat_gateway   = false
   enable_vpn_gateway   = false
   enable_dns_hostnames = true
   enable_dns_support   = true
 }
 
+/*
+resource "aws_subnet" "public_sub" {
+    depends_on = [
+	for a in keys(var.project): module.vpc[a]
+    ]
+*/
 
 # Security for the Web-Servers
 module "app_security_group" {
@@ -104,7 +112,24 @@ module "app_security_group" {
   ingress_rules = [ "ssh-tcp" ]
   # add the SSH-Host networks
   ingress_cidr_blocks = concat(module.vpc[each.key].public_subnets_cidr_blocks, var.ssh_access_permit)
+  # ingress_cidr_blocks = module.vpc[each.key].public_subnets_cidr_blocks
 }
+
+/*
+
+# Security for the Bastion
+module "bastion_security_group" {
+  source  = "terraform-aws-modules/security-group/aws//modules/http-8080"
+  version = "3.12.0"
+
+  name        = "web-server-sg-bastion"
+  description = "Security group for Bastion-Host"
+  vpc_id      = ${aws_default_vpc.default.id}
+
+  ingress_cidr_blocks = var.ssh_access_permit
+}
+
+*/
 
 resource "random_string" "lb_id" {
   length  = 4
@@ -142,8 +167,8 @@ module "elb_http" {
   security_groups = [module.lb_security_group[each.key].this_security_group_id]
   subnets         = module.vpc[each.key].public_subnets
 
-  number_of_instances = length(module.ec2_instances[each.key].instance_ids)
-  instances           = module.ec2_instances[each.key].instance_ids
+  number_of_instances = length(module.ec2_instances[each.key].instance_id)
+  instances           = module.ec2_instances[each.key].instance_id
 
   # forward traffic from 443 to 8080
   listener = [
@@ -152,8 +177,6 @@ module "elb_http" {
     instance_protocol = "HTTP"
     lb_port           = "443"
     lb_protocol       = "HTTPS"
-#    ssl_certificate_id = var.ssl_cert
-#    ssl_certificate_id = aws_acm_certificate.cert.id
     ssl_certificate_id = module.aws_cert[each.key].id
   }
   ]

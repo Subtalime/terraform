@@ -1,9 +1,9 @@
-output instance_ids {
+output instance_id {
   description = "IDs of EC2 instances"
   value       = aws_instance.app.*.id
 }
 
-output public_ips {
+output public_ip {
   description = "Public IPs of EC2 instances"
   value       = aws_instance.app.*.public_ip
 }

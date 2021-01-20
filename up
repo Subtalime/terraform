@@ -2,5 +2,8 @@
 
 cd terraform 
 terraform apply -auto-approve
+if [ $? -ne 0 ]; then
+    exit
+fi
 cd ../ansible
-ansible-playbook -i inventory/ansible-inventory.ini frontend.yml
+ansible-playbook frontend.yml
