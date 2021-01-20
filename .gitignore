@@ -3,3 +3,5 @@ terraform/.terraform
 *.hcl
 *.retry
 *.tfstate*
+ansible/inventory/*
+ansible.cfg
