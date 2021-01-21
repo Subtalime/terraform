@@ -117,15 +117,15 @@ variable project {
       environment             = "dev",
       dns_name		      = "www2",
       dns_record_type         = "CNAME"
-    },
+    }/*,
     production = {
       public_subnets_per_vpc  = 1,
-      private_subnets_per_vpc = 2,
+      private_subnets_per_vpc = 1,
       instances_per_subnet    = 1,
       instance_type           = "t2.nano",
       environment             = "prod",
       dns_name		      = "www",
       dns_record_type         = "CNAME"
-    }
+    }*/
   }
 }
