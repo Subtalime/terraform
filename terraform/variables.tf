@@ -12,6 +12,12 @@ variable "ssh_instance_user" {
     type = string
 }
 
+variable "ssh_key_name" {
+    description = "The name under which the Key will be stored in AWS"
+    default = "ssh_key"
+    type = string
+}
+
 variable "domain_name" {
     description = "The domain being used to route traffic"
     default = "ts-aws.net"

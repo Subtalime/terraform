@@ -6,7 +6,8 @@ resource "aws_instance" "app" {
     subnet_id              = var.subnet_ids[count.index % length(var.subnet_ids)]
     vpc_security_group_ids = var.security_group_ids
 
-    associate_public_ip_address = true
+    associate_public_ip_address = var.assign_public_ip
+    monitoring			= var.monitoring
 
     tags = {
         Terraform   = "true"

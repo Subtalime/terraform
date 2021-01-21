@@ -7,13 +7,13 @@ variable instance_count {
 variable assign_public_ip {
   description = "Whether to get a Public-IP for this instance"
   type        = bool
-  default     = false
+  default     = true
 }
 
 variable monitoring {
-    description = "enable detailed monitoring"
-    type = bool
-    default = true
+  description = "enable monitoring of the instance"
+  type        = bool
+  default     = false
 }
 
 variable instance_type {
@@ -48,5 +48,15 @@ variable ami_image {
 
 variable "ssh_key_name" {
     description = "Resource to aws_key_pair"
+    type = string
+}
+
+variable "ssh_user" {
+    description = "The SSH User to login to see if the instance is up"
+    type = string
+}
+
+variable "private_key_path" {
+    description = "Path to the Private-Key, needed to see if the instance is up"
     type = string
 }

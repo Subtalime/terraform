@@ -23,3 +23,16 @@ sudo systemd-resolve --set-dns=205.251.196.133 --interface=enp3s0
 I was then able to call the Web-Page provided by "outputs.tf". Once web page confirmed, I reset it back to my Router DNS
 
 sudo systemd-resolve --set-dns=192.168.128.1 --interface=enp3s0
+
+
+## Using a Bastion
+make sure you use ssh-agent 
+  ssh-agent bash
+check if your key has already been added
+  ssh-add -L
+add your SSH-Key
+  ssh-add -k <your-ssh-pem>
+You should be able to connect to Bastion using
+  ssh -A <user>@<bastion>
+From there
+  ssh <user>@<instance>

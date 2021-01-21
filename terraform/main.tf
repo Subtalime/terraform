@@ -50,6 +50,16 @@ module "aws_cert" {
 resource "aws_route53_zone" "primary" {
     name = var.domain_name
 }
+# Store the SSH Key to be used in the Web-Instances
+resource "aws_key_pair" "ec2key" {
+    key_name = var.ssh_key_name
+    public_key = file(var.public_key_path)
+}
+
+resource "random_string" "lb_id" {
+  length  = 4
+  special = false
+}
 
 module "route_records" {
     source = "./modules/route-record"
@@ -72,30 +82,29 @@ module "route_records" {
 
 
 # Virtual private clouds creation per environment
+# We require NAT Gateways for the private instances to access the Internet (yum...)
+# For that, we need to assign an Elastic-IP in a public subnet and assign this to the NGW
+# update route table for private subnets to point internet traffic to the NGW
 module "vpc" {
-  source  = "terraform-aws-modules/vpc/aws"
-  version = "2.64.0"
+    source  = "terraform-aws-modules/vpc/aws"
+    version = "2.64.0"
 
-  for_each = var.project
+    for_each = var.project
 
-  cidr = var.cidr_vpc
+    cidr = var.cidr_vpc
 
-  azs             = data.aws_availability_zones.available.names
-  private_subnets = slice(var.private_subnet_cidr_blocks, 0, each.value.private_subnets_per_vpc)
-  public_subnets  = slice(var.public_subnet_cidr_blocks, 0, each.value.public_subnets_per_vpc)
+    azs             = data.aws_availability_zones.available.names
+    private_subnets = slice(var.private_subnet_cidr_blocks, 0, each.value.private_subnets_per_vpc)
+    public_subnets  = slice(var.public_subnet_cidr_blocks, 0, each.value.public_subnets_per_vpc)
 
-  enable_nat_gateway   = false
-  enable_vpn_gateway   = false
-  enable_dns_hostnames = true
-  enable_dns_support   = true
+    enable_nat_gateway   = true
+    single_nat_gateway   = true
+    enable_vpn_gateway   = false
+    # Required, to access instances by internal DNS names
+    enable_dns_hostnames = true
+    enable_dns_support   = true
 }
 
-/*
-resource "aws_subnet" "public_sub" {
-    depends_on = [
-	for a in keys(var.project): module.vpc[a]
-    ]
-*/
 
 # Security for the Web-Servers
 module "app_security_group" {
@@ -111,30 +120,24 @@ module "app_security_group" {
   # Web-Module does not contain SSH by default, add it to be able to use Ansible from SSH-Host networks
   ingress_rules = [ "ssh-tcp" ]
   # add the SSH-Host networks
-  ingress_cidr_blocks = concat(module.vpc[each.key].public_subnets_cidr_blocks, var.ssh_access_permit)
-  # ingress_cidr_blocks = module.vpc[each.key].public_subnets_cidr_blocks
+  # ingress_cidr_blocks = concat(module.vpc[each.key].public_subnets_cidr_blocks, var.ssh_access_permit)
+  ingress_cidr_blocks = module.vpc[each.key].public_subnets_cidr_blocks
 }
-
-/*
 
 # Security for the Bastion
 module "bastion_security_group" {
-  source  = "terraform-aws-modules/security-group/aws//modules/http-8080"
+  source  = "terraform-aws-modules/security-group/aws//modules/ssh"
   version = "3.12.0"
 
-  name        = "web-server-sg-bastion"
-  description = "Security group for Bastion-Host"
-  vpc_id      = ${aws_default_vpc.default.id}
+  for_each = var.project
+
+  name        = "bastion-sg-${each.value.environment}"
+  description = "Security group for Bastion-Host in ${each.value.environment} Environment"
+  vpc_id      = module.vpc[each.key].vpc_id
 
   ingress_cidr_blocks = var.ssh_access_permit
 }
 
-*/
-
-resource "random_string" "lb_id" {
-  length  = 4
-  special = false
-}
 
 # Security for the Load-Balancer
 module "lb_security_group" {
@@ -150,6 +153,7 @@ module "lb_security_group" {
 
   ingress_cidr_blocks = ["0.0.0.0/0"]
 }
+
 
 # Elastic-Load-Balancer for HTTP Traffic
 module "elb_http" {
@@ -190,27 +194,38 @@ module "elb_http" {
   }
 }
 
-# Store the SSH Key to be used in the Web-Instances
-resource "aws_key_pair" "ec2key" {
-    key_name = "ssh_key"
-    public_key = file(var.public_key_path)
-}
-
-
 # Configure and create the Web-Instances
 module "ec2_instances" {
-  source = "./modules/aws-instance"
+    source = "./modules/aws-instance"
 
-  for_each = var.project
+    for_each = var.project
 
-  ami_image          = var.ami_image
-  instance_count     = each.value.instances_per_subnet * length(module.vpc[each.key].public_subnets)
-  instance_type      = each.value.instance_type
-  subnet_ids         = module.vpc[each.key].public_subnets[*]
-  security_group_ids = [module.app_security_group[each.key].this_security_group_id]
-  ssh_key_name       = aws_key_pair.ec2key.key_name
-  private_key_path   = var.private_key_path
-  ssh_user           = var.ssh_instance_user
-  project_name = each.key
-  environment  = each.value.environment
+    ami_image          = var.ami_image
+    instance_count     = each.value.instances_per_subnet * length(module.vpc[each.key].public_subnets)
+    instance_type      = each.value.instance_type
+    subnet_ids         = module.vpc[each.key].private_subnets[*]
+    security_group_ids = [module.app_security_group[each.key].this_security_group_id]
+    ssh_key_name       = aws_key_pair.ec2key.key_name
+
+    project_name = each.key
+    environment  = each.value.environment
+}
+
+module "bastion_instances" {
+    source = "./modules/bastion-host"
+
+    for_each = var.project
+
+    ami_image		= var.ami_image
+    instance_type 	= each.value.instance_type
+    subnet_ids 		= module.vpc[each.key].public_subnets[*]
+    security_group_ids 	= [module.bastion_security_group[each.key].this_security_group_id]
+    ssh_key_name       	= aws_key_pair.ec2key.key_name
+    monitoring 		= false
+
+    project_name	= each.key
+    environment		= each.value.environment
+
+    ssh_user		= var.ssh_instance_user
+    private_key_path	= var.private_key_path
 }

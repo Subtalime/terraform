@@ -1,6 +1,8 @@
-# Terraform template-file "project2.tmpl" generating "project2.yml"
+# Terraform template-file "ansible_inventory.tmpl" generating "../ansible/inventory/inventory.ini"
 # to be used as an Ansible var_file
 
+[all:vars]
+ansible_user=${ssh_user}
 %{ for env in keys(elb) ~}
 
 # Environment "${env}"
@@ -8,10 +10,12 @@
 # DNS for the Load-Balancer
 ${elb[env].this_elb_dns_name}  # ${elb[env].this_elb_name}
 [${env}_servers]
-# Public IPs for the instances
-%{ for index, s in http[env].public_ip ~}
-${http[env].public_ip[index]}  # dns=${http[env].public_dns[index]}
+# Private DNS names for the instances
+%{ for index, s in http[env].private_dns ~}
+${s}
 %{ endfor ~}
+[${env}_servers:vars]
+ansible_ssh_common_args='-o ProxyCommand="ssh -W %h:%p ${ssh_user}@${bastion[env].public_ip[0]}"'
 
 %{ endfor ~}
 

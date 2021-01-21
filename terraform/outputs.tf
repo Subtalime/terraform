@@ -13,14 +13,24 @@ output instance_ids {
   value       = { for p in sort(keys(var.project)) : p => module.ec2_instances[p].instance_id }
 }
 
+output public_bastion_ips {
+  description = "Public IPs of the Bastion-Hosts for each project"
+  value       = { for p in sort(keys(var.project)) : p => module.bastion_instances[p].public_ip }
+}
+
+output public_bastion_dns {
+  description = "Public DNSs of the Bastion-Hosts for each project"
+  value       = { for p in sort(keys(var.project)) : p => module.bastion_instances[p].public_dns }
+}
+
 output public_instance_ips {
   description = "Public IPs of the instance for each project"
   value       = { for p in sort(keys(var.project)) : p => module.ec2_instances[p].public_ip }
 }
 
-output public_instance_dns {
+output private_instance_dns {
   description = "Public DNSs of the instance for each project"
-  value       = { for p in sort(keys(var.project)) : p => module.ec2_instances[p].public_dns }
+  value       = { for p in sort(keys(var.project)) : p => module.ec2_instances[p].private_dns }
 }
 
 variable "inventory_path" {
@@ -38,8 +48,10 @@ resource "local_file" "config" {
 
 resource "local_file" "inventory" {
     content = templatefile("./ansible_inventory.tmpl", {
-	elb 	= module.elb_http,
-	http 	= module.ec2_instances
+	elb 		= module.elb_http,
+	http 		= module.ec2_instances,
+	bastion 	= module.bastion_instances,
+	ssh_user 	= var.ssh_instance_user
     })
     filename = var.inventory_path
 }

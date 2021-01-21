@@ -12,3 +12,9 @@ output public_dns {
   description = "Public DNSs of EC2 instances"
   value       = aws_instance.app.*.public_dns
 }
+
+output private_dns {
+  description = "Private DNS names of EC2 instances"
+  value       = aws_instance.app.*.private_dns
+}
+
